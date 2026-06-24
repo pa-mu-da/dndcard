@@ -76,13 +76,20 @@ function parseCharacterSheet(html) {
     },
     skills: [],
     background: '',
-    otherProficiencies: ''
+    otherProficiencies: '',
+    playerName: ''
   };
 
   // 1. キャラクター名
   const titleMatch = html.match(/<title>\s*([\s\S]*?)\s*<\/title>/i);
   if (titleMatch) {
     result.characterName = titleMatch[1].replace(/[\r\n\t]/g, '').trim();
+  }
+
+  // 1.5 プレイヤー名
+  const plMatch = html.match(/プレイヤー名<BR>\s*<DIV class='B'><B>([^<]+)<\/B><\/DIV>/i);
+  if (plMatch) {
+    result.playerName = plMatch[1].trim();
   }
 
   // 2. 種族

@@ -233,6 +233,35 @@
       cursor: not-allowed;
     }
 
+    .btn-ccfolia {
+      width: 100%;
+      padding: 1rem;
+      background: linear-gradient(135deg, #ec4899, #8b5cf6);
+      border: none;
+      border-radius: 10px;
+      color: white;
+      font-weight: 600;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      margin-top: 1rem;
+      box-shadow: 0 4px 12px rgba(236, 72, 153, 0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+    }
+
+    .btn-ccfolia:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(236, 72, 153, 0.4);
+    }
+
+    .btn-ccfolia:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
     .status-msg {
       margin-top: 1rem;
       padding: 0.8rem;
@@ -293,6 +322,10 @@
       </div>
 
       <button id="generate-btn" class="btn-generate">カードを生成する</button>
+      <button id="ccfolia-btn" class="btn-ccfolia" disabled>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+        ココフォリアのコマをコピー
+      </button>
 
       <div id="status" class="status-msg"></div>
     </div>
@@ -335,6 +368,7 @@
     const urlInput = document.getElementById('sheet-url');
     const generateBtn = document.getElementById('generate-btn');
     const downloadBtn = document.getElementById('download-btn');
+    const ccfoliaBtn = document.getElementById('ccfolia-btn');
     const statusDiv = document.getElementById('status');
     const themeButtons = document.querySelectorAll('.theme-btn');
 
@@ -344,6 +378,7 @@
     // イベントリスナー
     generateBtn.addEventListener('click', generateCard);
     downloadBtn.addEventListener('click', downloadCard);
+    ccfoliaBtn.addEventListener('click', copyCcfoliaJson);
 
     themeButtons.forEach(btn => {
       btn.addEventListener('click', () => {
@@ -439,6 +474,7 @@
         drawCard();
         
         downloadBtn.disabled = false;
+        ccfoliaBtn.disabled = false;
       } catch (err) {
         showStatus(err.message, 'error');
         console.error(err);
@@ -1158,6 +1194,67 @@
       link.download = filename;
       link.href = canvas.toDataURL('image/png');
       link.click();
+    }
+
+    // ココフォリアのコマ用JSONコピー処理
+    function copyCcfoliaJson() {
+      if (!currentData) return;
+
+      const pl = currentData.playerName || 'なし';
+      const memo = `${currentData.characterName}\nPL: ${pl}\n種族: ${currentData.race}\nクラス: ${currentData.classAndLevel}\n移動速度: ${currentData.speed}`;
+
+      const status = [
+        { label: 'HP', value: currentData.hp.max, max: currentData.hp.max }
+      ];
+
+      const params = [
+        { label: 'STR', value: (currentData.abilities.str.modifier >= 0 ? '+' : '') + currentData.abilities.str.modifier },
+        { label: 'DEX', value: (currentData.abilities.dex.modifier >= 0 ? '+' : '') + currentData.abilities.dex.modifier },
+        { label: 'CON', value: (currentData.abilities.con.modifier >= 0 ? '+' : '') + currentData.abilities.con.modifier },
+        { label: 'INT', value: (currentData.abilities.int.modifier >= 0 ? '+' : '') + currentData.abilities.int.modifier },
+        { label: 'WIS', value: (currentData.abilities.wis.modifier >= 0 ? '+' : '') + currentData.abilities.wis.modifier },
+        { label: 'CHA', value: (currentData.abilities.cha.modifier >= 0 ? '+' : '') + currentData.abilities.cha.modifier }
+      ];
+
+      const ccfoliaData = {
+        kind: 'character',
+        data: {
+          name: currentData.characterName,
+          memo: memo,
+          initiative: currentData.initiative,
+          externalUrl: currentData.sourceUrl || '',
+          status: status,
+          params: params,
+          iconUrl: '',
+          faces: [],
+          x: 0,
+          y: 0,
+          angle: 0,
+          width: 4,
+          height: 4,
+          active: true,
+          secret: false,
+          invisible: false,
+          hideStatus: false,
+          color: '#cccccc',
+          commands: '',
+          owner: ''
+        }
+      };
+
+      const jsonStr = JSON.stringify(ccfoliaData);
+
+      navigator.clipboard.writeText(jsonStr).then(() => {
+        const originalText = ccfoliaBtn.innerHTML;
+        ccfoliaBtn.textContent = 'コピー完了！';
+        ccfoliaBtn.style.background = '#10b981';
+        setTimeout(() => {
+          ccfoliaBtn.innerHTML = originalText;
+          ccfoliaBtn.style.background = '';
+        }, 2000);
+      }).catch(err => {
+        alert('クリップボードへのコピーに失敗しました。ブラウザの権限を確認してください: ' + err);
+      });
     }
   </script>
 </body>
