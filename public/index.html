@@ -1,0 +1,1164 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>D&D 5E キャラクターカードジェネレーター</title>
+  
+  <!-- Google Fonts: Noto Sans JP, Noto Serif JP, and Outfit for UI -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=Noto+Serif+JP:wght@400;700&family=Outfit:wght@400;600;800&display=swap" rel="stylesheet">
+  
+  <style>
+    :root {
+      --bg-dark: #0f111a;
+      --bg-card: rgba(22, 26, 41, 0.7);
+      --border-color: rgba(255, 255, 255, 0.08);
+      --text-main: #f3f4f6;
+      --text-muted: #9ca3af;
+      --accent-color: #3b82f6;
+      --accent-hover: #2563eb;
+      --glow-color: rgba(59, 130, 246, 0.25);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Outfit', 'Noto Sans JP', sans-serif;
+      background-color: var(--bg-dark);
+      background-image: 
+        radial-gradient(at 0% 0%, rgba(59, 130, 246, 0.1) 0px, transparent 50%),
+        radial-gradient(at 100% 100%, rgba(99, 102, 241, 0.08) 0px, transparent 50%);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      padding: 2rem 1.5rem;
+      text-align: center;
+      border-bottom: 1px solid var(--border-color);
+      background: rgba(15, 17, 26, 0.8);
+      backdrop-filter: blur(12px);
+    }
+
+    header h1 {
+      font-size: 2.2rem;
+      font-weight: 800;
+      letter-spacing: -0.05em;
+      background: linear-gradient(135deg, #60a5fa, #818cf8);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 0.5rem;
+    }
+
+    header p {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+    }
+
+    main {
+      flex: 1;
+      max-width: 1300px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 2.5rem 1.5rem;
+      display: grid;
+      grid-template-columns: 450px 1fr;
+      gap: 3rem;
+      align-items: start;
+    }
+
+    @media (max-width: 1024px) {
+      main {
+        grid-template-columns: 1fr;
+        gap: 2rem;
+      }
+    }
+
+    .control-panel {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      padding: 2rem;
+      backdrop-filter: blur(16px);
+      box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+    }
+
+    .form-group {
+      margin-bottom: 1.8rem;
+    }
+
+    label {
+      display: block;
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      margin-bottom: 0.6rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .input-container {
+      position: relative;
+    }
+
+    input[type="url"] {
+      width: 100%;
+      padding: 1rem 1.2rem;
+      background: rgba(10, 12, 20, 0.6);
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      color: var(--text-main);
+      font-family: inherit;
+      font-size: 0.95rem;
+      outline: none;
+      transition: all 0.3s ease;
+    }
+
+    input[type="url"]:focus {
+      border-color: var(--accent-color);
+      box-shadow: 0 0 0 3px var(--glow-color);
+    }
+
+    .btn-generate {
+      width: 100%;
+      padding: 1rem;
+      background: linear-gradient(135deg, var(--accent-color), #4f46e5);
+      border: none;
+      border-radius: 10px;
+      color: white;
+      font-weight: 600;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
+    }
+
+    .btn-generate:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
+    }
+
+    .btn-generate:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .theme-selector {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.8rem;
+    }
+
+    .theme-btn {
+      background: rgba(10, 12, 20, 0.5);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 0.8rem;
+      color: var(--text-muted);
+      font-weight: 600;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-family: 'Noto Sans JP', sans-serif;
+    }
+
+    .theme-btn:hover {
+      border-color: rgba(255, 255, 255, 0.2);
+      color: var(--text-main);
+    }
+
+    .theme-btn.active {
+      background: rgba(59, 130, 246, 0.15);
+      border-color: var(--accent-color);
+      color: var(--accent-color);
+      box-shadow: 0 0 10px rgba(59, 130, 246, 0.1);
+    }
+
+    .preview-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1.5rem;
+    }
+
+    .canvas-wrapper {
+      background: #08090d;
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 20px 50px -20px rgba(0, 0, 0, 0.7);
+      max-width: 500px;
+      width: 100%;
+      aspect-ratio: 2/3;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    .btn-download {
+      padding: 0.8rem 2rem;
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 8px;
+      color: var(--text-main);
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .btn-download:hover:not(:disabled) {
+      background: var(--text-main);
+      color: var(--bg-dark);
+    }
+
+    .btn-download:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .status-msg {
+      margin-top: 1rem;
+      padding: 0.8rem;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      display: none;
+    }
+
+    .status-msg.error {
+      background: rgba(239, 68, 68, 0.1);
+      border: 1px solid rgba(239, 68, 68, 0.2);
+      color: #fca5a5;
+      display: block;
+    }
+
+    .status-msg.info {
+      background: rgba(59, 130, 246, 0.1);
+      border: 1px solid rgba(59, 130, 246, 0.2);
+      color: #93c5fd;
+      display: block;
+    }
+
+    footer.site-footer {
+      text-align: center;
+      padding: 2rem;
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      border-top: 1px solid var(--border-color);
+      background: rgba(15, 17, 26, 0.5);
+      margin-top: auto;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>D&D 5E Character Card Generator</h1>
+    <p>キャラクターデータベースのURLから、スタイリッシュな要約カード画像を生成</p>
+  </header>
+
+  <main>
+    <div class="control-panel">
+      <div class="form-group">
+        <label for="sheet-url">キャラクターシートのURL</label>
+        <div class="input-container">
+          <!-- 初期状態は空、特定のURLは持たせない -->
+          <input type="url" id="sheet-url" placeholder="https://dndjp.sakura.ne.jp/OUTPUT.php?ID=xxxxx" required>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>テーマ・スタイル</label>
+        <div class="theme-selector">
+          <button class="theme-btn active" data-theme="light">ライト</button>
+          <button class="theme-btn" data-theme="abyssal">アビス</button>
+          <button class="theme-btn" data-theme="classic">クラシック</button>
+        </div>
+      </div>
+
+      <button id="generate-btn" class="btn-generate">カードを生成する</button>
+
+      <div id="status" class="status-msg"></div>
+    </div>
+
+    <div class="preview-container">
+      <div class="canvas-wrapper">
+        <canvas id="card-canvas" width="800" height="1200"></canvas>
+      </div>
+      <button id="download-btn" class="btn-download" disabled>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+        PNG画像をダウンロード
+      </button>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    D&D 5E Character Card Generator - Standing on local vanilla server
+  </footer>
+
+  <script>
+    // グローバル状態
+    let currentData = null;
+    let currentTheme = 'light';
+    const canvas = document.getElementById('card-canvas');
+    const ctx = canvas.getContext('2d');
+    
+    // 羊皮紙テクスチャ画像のプリロード用
+    let parchmentImg = new Image();
+    let parchmentLoaded = false;
+    
+    parchmentImg.onload = () => {
+      parchmentLoaded = true;
+      if (currentData && currentTheme === 'classic') {
+        drawCard();
+      }
+    };
+    parchmentImg.src = 'assets/parchment_texture.png';
+
+    // UI要素
+    const urlInput = document.getElementById('sheet-url');
+    const generateBtn = document.getElementById('generate-btn');
+    const downloadBtn = document.getElementById('download-btn');
+    const statusDiv = document.getElementById('status');
+    const themeButtons = document.querySelectorAll('.theme-btn');
+
+    // 初期状態描画 (空の状態)
+    drawPlaceholder();
+
+    // イベントリスナー
+    generateBtn.addEventListener('click', generateCard);
+    downloadBtn.addEventListener('click', downloadCard);
+
+    themeButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        themeButtons.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentTheme = btn.dataset.theme;
+        if (currentData) {
+          drawCard();
+        } else {
+          drawPlaceholder();
+        }
+      });
+    });
+
+    function showStatus(text, type = 'info') {
+      statusDiv.textContent = text;
+      statusDiv.className = `status-msg ${type}`;
+      statusDiv.style.display = 'block';
+    }
+
+    function clearStatus() {
+      statusDiv.style.display = 'none';
+    }
+
+    // プレースホルダーの描画
+    function drawPlaceholder() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      
+      let themeStyles = getThemeStyles(currentTheme);
+      
+      if (currentTheme === 'classic' && parchmentLoaded) {
+        ctx.drawImage(parchmentImg, 0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = themeStyles.bgOverlay;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+      } else {
+        if (themeStyles.bgGrad) {
+          let grad = ctx.createLinearGradient(0, 0, 0, canvas.height);
+          grad.addColorStop(0, themeStyles.bgGrad[0]);
+          grad.addColorStop(1, themeStyles.bgGrad[1]);
+          ctx.fillStyle = grad;
+        } else {
+          ctx.fillStyle = themeStyles.bg;
+        }
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+      }
+
+      // 外枠の描画
+      drawBorders(themeStyles);
+
+      // 中央にテキスト表示
+      ctx.fillStyle = themeStyles.textSecondary;
+      ctx.textAlign = 'center';
+      
+      if (currentTheme === 'classic') {
+        ctx.font = "italic 400 24px 'Noto Serif JP'";
+      } else {
+        ctx.font = "500 20px 'Noto Sans JP'";
+      }
+      
+      ctx.fillText('URLを入力してキャラクターカードを生成してください', canvas.width / 2, canvas.height / 2);
+    }
+
+    // APIを呼び出してキャラクターシートをパースする
+    async function generateCard() {
+      const url = urlInput.value.trim();
+      if (!url) {
+        showStatus('URLを入力してください。', 'error');
+        return;
+      }
+
+      if (!url.startsWith('https://dndjp.sakura.ne.jp/')) {
+        showStatus('無効なURLです。D&D5E キャラクターデータベース(dndjp.sakura.ne.jp)のURLを入力してください。', 'error');
+        return;
+      }
+
+      generateBtn.disabled = true;
+      downloadBtn.disabled = true;
+      showStatus('データをフェッチして解析中...', 'info');
+
+      try {
+        const response = await fetch(`/api/parse?url=${encodeURIComponent(url)}`);
+        const result = await response.json();
+
+        if (!response.ok || result.error) {
+          throw new Error(result.error || '解析に失敗しました。');
+        }
+
+        currentData = result;
+        clearStatus();
+        
+        // フォントのロード完了を待って描画
+        await document.fonts.ready;
+        drawCard();
+        
+        downloadBtn.disabled = false;
+      } catch (err) {
+        showStatus(err.message, 'error');
+        console.error(err);
+      } finally {
+        generateBtn.disabled = false;
+      }
+    }
+
+    // テーマ別配色・スタイルの定義
+    function getThemeStyles(theme) {
+      switch (theme) {
+        case 'abyssal':
+          return {
+            bgGrad: ['#141418', '#0A0A0E'],
+            bgSubtle: 'rgba(255, 255, 255, 0.04)',
+            border: '#2A2A35',
+            accent: '#CC2244',
+            accentCold: '#5060A0',
+            accentGlow: 'rgba(204, 34, 68, 0.20)',
+            statBoxBg: 'rgba(204, 34, 68, 0.10)',
+            textPrimary: '#E8E8F0',
+            textSecondary: '#7080A0',
+            textAccent: '#FF4466',
+            proficiencyDot: '#CC2244',
+            noProficiencyDot: '#2A2A35',
+            font: "'Noto Sans JP', sans-serif"
+          };
+        case 'classic':
+          return {
+            bg: '#F5E6C3',
+            bgOverlay: 'rgba(245, 230, 195, 0.55)',
+            bgSubtle: 'rgba(160, 120, 60, 0.08)',
+            border: '#8A6428',
+            borderInner: '#B8922E',
+            accent: '#8A4A1A',
+            accentGold: '#B8922E',
+            statBoxBg: 'rgba(138, 100, 40, 0.12)',
+            textPrimary: '#2C1A08',
+            textSecondary: '#6A4E2A',
+            textAccent: '#8A4A1A',
+            proficiencyDot: '#8A4A1A',
+            noProficiencyDot: 'rgba(138, 100, 40, 0.30)',
+            font: "'Noto Serif JP', serif"
+          };
+        case 'light':
+        default:
+          return {
+            bg: '#FFFFFF',
+            bgSubtle: '#F4F6F8',
+            border: '#C8D0D8',
+            accent: '#2C6EAB',
+            accentLight: '#E8F0F8',
+            textPrimary: '#1A1F2C',
+            textSecondary: '#546070',
+            textAccent: '#2C6EAB',
+            proficiencyDot: '#2C6EAB',
+            noProficiencyDot: '#C8D0D8',
+            font: "'Noto Sans JP', sans-serif"
+          };
+      }
+    }
+
+    // 枠・装飾の描画
+    function drawBorders(styles) {
+      const pad = 24;
+      const w = canvas.width;
+      const h = canvas.height;
+
+      ctx.save();
+      ctx.shadowBlur = 0; // シャドウリセット
+      
+      if (currentTheme === 'light') {
+        // 二重枠線
+        ctx.strokeStyle = styles.accent;
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        drawRoundRect(ctx, pad, pad, w - pad*2, h - pad*2, 12);
+        ctx.stroke();
+
+        ctx.strokeStyle = styles.border;
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        drawRoundRect(ctx, pad + 8, pad + 8, w - (pad+8)*2, h - (pad+8)*2, 8);
+        ctx.stroke();
+
+        // 留め具 (四隅の正方形)
+        ctx.fillStyle = styles.accent;
+        const cornerSize = 10;
+        ctx.fillRect(pad + 3, pad + 3, cornerSize, cornerSize);
+        ctx.fillRect(w - pad - cornerSize - 3, pad + 3, cornerSize, cornerSize);
+        ctx.fillRect(pad + 3, h - pad - cornerSize - 3, cornerSize, cornerSize);
+        ctx.fillRect(w - pad - cornerSize - 3, h - pad - cornerSize - 3, cornerSize, cornerSize);
+
+      } else if (currentTheme === 'abyssal') {
+        // 直角のエッジのきいた枠線
+        ctx.strokeStyle = styles.accent;
+        ctx.lineWidth = 2;
+        ctx.strokeRect(pad, pad, w - pad*2, h - pad*2);
+
+        ctx.strokeStyle = styles.border;
+        ctx.lineWidth = 1;
+        ctx.strokeRect(pad + 4, pad + 4, w - (pad+4)*2, h - (pad+4)*2);
+
+        // コーナーのL字装飾
+        ctx.strokeStyle = styles.accent;
+        ctx.lineWidth = 2.5;
+        const len = 24;
+        
+        // 左上
+        ctx.beginPath(); ctx.moveTo(pad, pad + len); ctx.lineTo(pad, pad); ctx.lineTo(pad + len, pad); ctx.stroke();
+        // 右上
+        ctx.beginPath(); ctx.moveTo(w - pad, pad + len); ctx.lineTo(w - pad, pad); ctx.lineTo(w - pad - len, pad); ctx.stroke();
+        // 左下
+        ctx.beginPath(); ctx.moveTo(pad, h - pad - len); ctx.lineTo(pad, h - pad); ctx.lineTo(pad + len, h - pad); ctx.stroke();
+        // 右下
+        ctx.beginPath(); ctx.moveTo(w - pad, h - pad - len); ctx.lineTo(w - pad, h - pad); ctx.lineTo(w - pad - len, h - pad); ctx.stroke();
+
+      } else if (currentTheme === 'classic') {
+        // アンティークゴールドの二重枠
+        ctx.strokeStyle = styles.accentGold;
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        drawRoundRect(ctx, pad, pad, w - pad*2, h - pad*2, 6);
+        ctx.stroke();
+
+        ctx.strokeStyle = styles.border;
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        drawRoundRect(ctx, pad + 8, pad + 8, w - (pad+8)*2, h - (pad+8)*2, 4);
+        ctx.stroke();
+
+        // 菱形(◇)のコーナー装飾
+        ctx.fillStyle = styles.accentGold;
+        ctx.strokeStyle = styles.border;
+        ctx.lineWidth = 1.5;
+        const dSize = 7; // 菱形半幅
+
+        const corners = [
+          {x: pad + 8, y: pad + 8},
+          {x: w - pad - 8, y: pad + 8},
+          {x: pad + 8, y: h - pad - 8},
+          {x: w - pad - 8, y: h - pad - 8}
+        ];
+
+        corners.forEach(c => {
+          ctx.beginPath();
+          ctx.moveTo(c.x, c.y - dSize);
+          ctx.lineTo(c.x + dSize, c.y);
+          ctx.lineTo(c.x, c.y + dSize);
+          ctx.lineTo(c.x - dSize, c.y);
+          ctx.closePath();
+          ctx.fill();
+          ctx.stroke();
+        });
+      }
+      ctx.restore();
+    }
+
+    // 角丸矩形パス生成
+    function drawRoundRect(c, x, y, width, height, radius) {
+      c.moveTo(x + radius, y);
+      c.lineTo(x + width - radius, y);
+      c.quadraticCurveTo(x + width, y, x + width, y + radius);
+      c.lineTo(x + width, y + height - radius);
+      c.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+      c.lineTo(x + radius, y + height);
+      c.quadraticCurveTo(x, y + height, x, y + height - radius);
+      c.lineTo(x, y + radius);
+      c.quadraticCurveTo(x, y, x + radius, y);
+    }
+
+    // テキスト描画 (幅制限オートフィット)
+    function drawFitText(ctx, text, x, y, maxWidth, initialSize, font, align = 'left', weight = '400') {
+      let size = initialSize;
+      ctx.font = `${weight} ${size}px ${font}`;
+      ctx.textAlign = align;
+      while (ctx.measureText(text).width > maxWidth && size > 12) {
+        size -= 1;
+        ctx.font = `${weight} ${size}px ${font}`;
+      }
+      ctx.fillText(text, x, y);
+      return size; // 決定したサイズを返す
+    }
+
+    // 複数行テキストの折り返し＆はみ出し防止描画
+    function drawWrappedText(ctx, text, x, y, width, maxHeight, font, color, initialSize = 11, lineHeight = 16) {
+      if (!text) return;
+      ctx.fillStyle = color;
+      ctx.font = `400 ${initialSize}px ${font}`;
+      ctx.textAlign = 'left';
+      
+      const lines = text.split('\n');
+      let currentY = y;
+      
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i].trim();
+        if (!line) {
+          currentY += lineHeight / 2;
+          continue;
+        }
+        
+        let currentLine = "";
+        const chars = Array.from(line);
+        
+        for (let j = 0; j < chars.length; j++) {
+          const testLine = currentLine + chars[j];
+          const testWidth = ctx.measureText(testLine).width;
+          if (testWidth > width) {
+            if (currentY + lineHeight > y + maxHeight) return;
+            ctx.fillText(currentLine, x, currentY);
+            currentY += lineHeight;
+            currentLine = chars[j];
+          } else {
+            currentLine = testLine;
+          }
+        }
+        
+        if (currentLine) {
+          if (currentY + lineHeight > y + maxHeight) return;
+          ctx.fillText(currentLine, x, currentY);
+          currentY += lineHeight;
+        }
+      }
+    }
+
+    // メインカード描画ロジック
+    function drawCard() {
+      if (!currentData) return;
+
+      const styles = getThemeStyles(currentTheme);
+      
+      // 1. 背景の描画
+      ctx.save();
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      
+      if (currentTheme === 'classic' && parchmentLoaded) {
+        ctx.drawImage(parchmentImg, 0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = styles.bgOverlay;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+      } else {
+        if (styles.bgGrad) {
+          let grad = ctx.createLinearGradient(0, 0, 0, canvas.height);
+          grad.addColorStop(0, styles.bgGrad[0]);
+          grad.addColorStop(1, styles.bgGrad[1]);
+          ctx.fillStyle = grad;
+        } else {
+          ctx.fillStyle = styles.bg;
+        }
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+      }
+      ctx.restore();
+
+      // 2. 枠線の描画
+      drawBorders(styles);
+
+      // 3. HEADER ZONE (Y:52〜152)
+      ctx.save();
+      
+      // キャラクター名の背後にグローエフェクト (アビスのみ)
+      if (currentTheme === 'abyssal') {
+        let nameGlow = ctx.createRadialGradient(canvas.width/2, 90, 10, canvas.width/2, 90, 200);
+        nameGlow.addColorStop(0, styles.accentGlow);
+        nameGlow.addColorStop(1, 'transparent');
+        ctx.fillStyle = nameGlow;
+        ctx.fillRect(50, 40, canvas.width - 100, 100);
+      }
+
+      // キャラクター名
+      ctx.fillStyle = styles.textPrimary;
+      drawFitText(ctx, currentData.characterName, canvas.width / 2, 90, 680, 36, styles.font, 'center', '700');
+
+      // 種族・クラス・レベル
+      ctx.fillStyle = styles.textSecondary;
+      let subText = `${currentData.race}  |  ${currentData.classAndLevel}`;
+      drawFitText(ctx, subText, canvas.width / 2, 130, 680, 16, styles.font, 'center', '400');
+      
+      // 区切り線 (Y:152)
+      ctx.strokeStyle = styles.border;
+      ctx.lineWidth = 1;
+      
+      if (currentTheme === 'classic') {
+        // クラシックは中央に菱形デコレーターの付いたアンティークゴールド線
+        ctx.strokeStyle = styles.accentGold;
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(48, 152);
+        ctx.lineTo(canvas.width - 48, 152);
+        ctx.stroke();
+
+        ctx.fillStyle = styles.accentGold;
+        ctx.beginPath();
+        ctx.moveTo(canvas.width/2, 152 - 5);
+        ctx.lineTo(canvas.width/2 + 5, 152);
+        ctx.lineTo(canvas.width/2, 152 + 5);
+        ctx.lineTo(canvas.width/2 - 5, 152);
+        ctx.closePath();
+        ctx.fill();
+      } else if (currentTheme === 'abyssal') {
+        // アビスは赤グラデーションの線
+        let lineGrad = ctx.createLinearGradient(48, 0, canvas.width - 48, 0);
+        lineGrad.addColorStop(0, 'transparent');
+        lineGrad.addColorStop(0.3, styles.accent);
+        lineGrad.addColorStop(0.7, styles.accent);
+        lineGrad.addColorStop(1, 'transparent');
+        ctx.strokeStyle = lineGrad;
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(48, 152);
+        ctx.lineTo(canvas.width - 48, 152);
+        ctx.stroke();
+      } else {
+        // ライト
+        ctx.beginPath();
+        ctx.moveTo(48, 152);
+        ctx.lineTo(canvas.width - 48, 152);
+        ctx.stroke();
+      }
+      ctx.restore();
+
+      // 4. STATS ZONE (Y:162〜272)
+      // AC, HP, イニシアティブ, 移動速度, 受動知覚 の 5 ボックス
+      ctx.save();
+      const statItems = [
+        { label: 'アーマークラス', value: currentData.ac.toString(), key: 'AC' },
+        { label: '最大ヒットポイント', value: currentData.hp.max.toString(), key: 'HP' },
+        { label: 'イニシアティブ', value: (currentData.initiative >= 0 ? '+' : '') + currentData.initiative, key: 'INI' },
+        { label: '移動速度', value: currentData.speed, key: 'SPEED' },
+        { label: '受動知覚', value: currentData.passivePerception.toString(), key: 'PP' }
+      ];
+
+      const startX = 48;
+      const totalW = canvas.width - startX * 2;
+      const gap = 8;
+      const boxW = (totalW - gap * 4) / 5;
+      const boxH = 100;
+      const boxY = 162;
+
+      statItems.forEach((item, idx) => {
+        const x = startX + idx * (boxW + gap);
+        
+        // ボックス背景
+        ctx.fillStyle = currentTheme === 'light' ? styles.accentLight : styles.statBoxBg;
+        ctx.strokeStyle = currentTheme === 'light' ? styles.accent : styles.border;
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        drawRoundRect(ctx, x, boxY, boxW, boxH, currentTheme === 'abyssal' ? 4 : 8);
+        ctx.fill();
+        ctx.stroke();
+
+        // ボックスラベル
+        ctx.fillStyle = styles.textSecondary;
+        ctx.textAlign = 'center';
+        ctx.font = `500 11px ${styles.font}`;
+        ctx.fillText(item.key, x + boxW / 2, boxY + 28);
+
+        // ボックス数値
+        ctx.fillStyle = (item.key === 'AC' || item.key === 'HP') && currentTheme !== 'classic' ? styles.textAccent : styles.textPrimary;
+        
+        // アビスのみ数値に若干のシャドウグロー
+        if (currentTheme === 'abyssal') {
+          ctx.shadowColor = styles.accentGlow;
+          ctx.shadowBlur = 8;
+        }
+        
+        drawFitText(ctx, item.value, x + boxW/2, boxY + 70, boxW - 10, 30, styles.font, 'center', '700');
+        ctx.shadowBlur = 0; // グローリセット
+        
+        // 下部の日本語補助テキストをごく薄く配置
+        ctx.fillStyle = styles.textSecondary;
+        ctx.font = `400 9px ${styles.font}`;
+        ctx.fillText(item.label, x + boxW/2, boxY + 90);
+      });
+      ctx.restore();
+
+      // 区切り線 (Y:272)
+      ctx.save();
+      ctx.strokeStyle = styles.border;
+      ctx.lineWidth = 1;
+      if (currentTheme === 'classic') {
+        ctx.setLineDash([4, 4]); // クラシックは破線
+      }
+      ctx.beginPath();
+      ctx.moveTo(48, 272);
+      ctx.lineTo(canvas.width - 48, 272);
+      ctx.stroke();
+      ctx.restore();
+
+      // 5. ABILITIES ＋ SKILLS ZONE (Y:290〜770)
+      
+      // LEFT COLUMN: 能力値 6行 + セーヴ (X: 44, W: 330px)
+      ctx.save();
+      const colLeftX = 44;
+      const colLeftW = 330;
+      const abilitiesY = 290;
+      const abRowH = 73; // 6行で約 440px 分
+
+      // 見出し「能力値・セーヴ習熟」
+      ctx.fillStyle = styles.textAccent;
+      ctx.font = `700 13px ${styles.font}`;
+      ctx.textAlign = 'left';
+      ctx.fillText('能力値 ＆ セーヴィングスロー', colLeftX, abilitiesY);
+
+      // 見出しの右側の延長線
+      ctx.strokeStyle = styles.border;
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(colLeftX + 180, abilitiesY - 4);
+      ctx.lineTo(colLeftX + colLeftW, abilitiesY - 4);
+      ctx.stroke();
+
+      const abOrder = [
+        { key: 'str', label: '筋力', eng: 'STR' },
+        { key: 'dex', label: '敏捷力', eng: 'DEX' },
+        { key: 'con', label: '耐久力', eng: 'CON' },
+        { key: 'int', label: '知力', eng: 'INT' },
+        { key: 'wis', label: '判断力', eng: 'WIS' },
+        { key: 'cha', label: '魅力', eng: 'CHA' }
+      ];
+
+      abOrder.forEach((ab, idx) => {
+        const rowY = abilitiesY + 22 + idx * abRowH;
+        const abData = currentData.abilities[ab.key];
+
+        // 交互ストライプ (ライトおよびクラシック)
+        if (idx % 2 === 1 && currentTheme !== 'abyssal') {
+          ctx.fillStyle = styles.bgSubtle;
+          ctx.beginPath();
+          drawRoundRect(ctx, colLeftX, rowY, colLeftW, abRowH - 4, 4);
+          ctx.fill();
+        }
+        
+        // アビス用の下ボーダー
+        if (currentTheme === 'abyssal') {
+          ctx.strokeStyle = styles.border;
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.moveTo(colLeftX, rowY + abRowH - 4);
+          ctx.lineTo(colLeftX + colLeftW, rowY + abRowH - 4);
+          ctx.stroke();
+        }
+
+        // 能力値ラベル + 英語略称
+        ctx.fillStyle = styles.textSecondary;
+        ctx.font = `400 10px ${styles.font}`;
+        ctx.textAlign = 'left';
+        ctx.fillText(ab.label, colLeftX + 8, rowY + 24);
+        ctx.font = `600 12px ${styles.font}`;
+        ctx.fillText(ab.eng, colLeftX + 8, rowY + 44);
+
+        // 能力値スコア
+        ctx.fillStyle = styles.textPrimary;
+        ctx.textAlign = 'center';
+        ctx.font = `700 24px ${styles.font}`;
+        ctx.fillText(abData.score.toString(), colLeftX + 68, rowY + 38);
+
+        // 縦区切り線 (スコアと修正値の間)
+        ctx.strokeStyle = styles.border;
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(colLeftX + 96, rowY + 12);
+        ctx.lineTo(colLeftX + 96, rowY + abRowH - 16);
+        ctx.stroke();
+
+        // 修正値
+        const modStr = (abData.modifier >= 0 ? '+' : '') + abData.modifier;
+        // セーヴ習熟がある場合はアビス等で修正値カラーを強調
+        ctx.fillStyle = abData.isProficient && currentTheme === 'abyssal' ? styles.textAccent : styles.textPrimary;
+        ctx.font = `700 20px ${styles.font}`;
+        ctx.textAlign = 'center';
+        ctx.fillText(modStr, colLeftX + 134, rowY + 36);
+        
+        // 修正値のサブテキスト
+        ctx.fillStyle = styles.textSecondary;
+        ctx.font = `400 9px ${styles.font}`;
+        ctx.fillText('修正値', colLeftX + 134, rowY + 54);
+
+        // セーヴィングスロー
+        ctx.textAlign = 'left';
+        ctx.fillStyle = styles.textSecondary;
+        ctx.font = `400 10px ${styles.font}`;
+        ctx.fillText('セーヴ', colLeftX + 185, rowY + 34);
+
+        // セーヴ値
+        const saveStr = (abData.saveBonus >= 0 ? '+' : '') + abData.saveBonus;
+        ctx.fillStyle = abData.isProficient ? styles.textAccent : styles.textPrimary;
+        ctx.font = `700 15px ${styles.font}`;
+        ctx.fillText(saveStr, colLeftX + 225, rowY + 35);
+
+        // 習熟ドット (セーヴ用)
+        const dotX = colLeftX + 275;
+        const dotY = rowY + 28;
+        const dotRadius = 5; // 直径10px
+
+        ctx.beginPath();
+        ctx.arc(dotX, dotY, dotRadius, 0, Math.PI * 2);
+        if (abData.isProficient) {
+          ctx.fillStyle = styles.proficiencyDot;
+          ctx.fill();
+        } else {
+          ctx.strokeStyle = styles.noProficiencyDot;
+          ctx.lineWidth = 1.5;
+          ctx.stroke();
+        }
+
+        // 習熟ラベルの変更
+        ctx.fillStyle = abData.isProficient ? styles.textAccent : styles.textSecondary;
+        ctx.font = `500 9px ${styles.font}`;
+        ctx.fillText(abData.isProficient ? '習熟' : '', dotX + 12, dotY + 3);
+      });
+      ctx.restore();
+
+      // RIGHT COLUMN: 技能 9行×2列 (X: 406, W: 350px)
+      ctx.save();
+      const colRightX = 406;
+      const colRightW = 350;
+      const skillsY = 290;
+      const skillRowH = 26;
+
+      // 技能見出し
+      ctx.fillStyle = styles.textAccent;
+      ctx.font = `700 13px ${styles.font}`;
+      ctx.textAlign = 'left';
+      ctx.fillText('技能 (習熟 ＆ ボーナス)', colRightX, skillsY);
+
+      // 見出しの右側の延長線
+      ctx.strokeStyle = styles.border;
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(colRightX + 150, skillsY - 4);
+      ctx.lineTo(colRightX + colRightW, skillsY - 4);
+      ctx.stroke();
+
+      // 技能の並べ替え（能力値順: STR -> DEX -> INT -> WIS -> CHA）
+      const sortedSkills = sortSkillsByAbility(currentData.skills);
+
+      // 9行×2列で配置する
+      const leftColX = colRightX;
+      const rightColX = colRightX + 178; // 列間gapは約8px
+      const colW = 168;
+
+      sortedSkills.forEach((skill, idx) => {
+        const col = idx % 2; // 0 = left, 1 = right
+        const row = Math.floor(idx / 2);
+        
+        const x = col === 0 ? leftColX : rightColX;
+        const y = skillsY + 22 + row * skillRowH;
+
+        // 偶数行に非常に薄い背景ストライプ (ライトおよびクラシック)
+        if (row % 2 === 1 && currentTheme !== 'abyssal') {
+          ctx.fillStyle = styles.bgSubtle;
+          ctx.fillRect(x - 4, y - 4, colW + 4, skillRowH - 2);
+        }
+
+        // 1. 習熟ドット
+        const dotRadius = 4; // 直径8px
+        const dotX = x + dotRadius;
+        const dotY = y + 8;
+
+        ctx.beginPath();
+        ctx.arc(dotX, dotY, dotRadius, 0, Math.PI * 2);
+        if (skill.isProficient) {
+          ctx.fillStyle = styles.proficiencyDot;
+          ctx.fill();
+        } else {
+          ctx.strokeStyle = styles.noProficiencyDot;
+          ctx.lineWidth = 1.2;
+          ctx.stroke();
+        }
+
+        // 2. 技能名
+        // 習熟している場合はアビスやクラシック等でテキストカラー変更
+        ctx.fillStyle = skill.isProficient && currentTheme !== 'light' ? styles.textAccent : styles.textPrimary;
+        ctx.font = `400 11px ${styles.font}`;
+        ctx.textAlign = 'left';
+        
+        // 能力値略称を併記 (例: 運動(筋))
+        const abNameMap = { STR: '筋', DEX: '敏', CON: '耐', INT: '知', WIS: '判', CHA: '魅' };
+        const abText = abNameMap[skill.ability] || skill.ability;
+        const skillText = `${skill.name} (${abText})`;
+        ctx.fillText(skillText, x + 16, y + 12);
+
+        // 3. ボーナス値
+        const bonusStr = (skill.bonus >= 0 ? '+' : '') + skill.bonus;
+        ctx.fillStyle = skill.isProficient ? styles.textAccent : styles.textPrimary;
+        ctx.font = `700 12px ${styles.font}`;
+        ctx.textAlign = 'right';
+        ctx.fillText(bonusStr, x + colW - 4, y + 12);
+      });
+
+      // 4. 受動知覚 (技能欄の下に配置)
+      const passiveBoxY = 565;
+      ctx.fillStyle = currentTheme === 'light' ? styles.accentLight : styles.statBoxBg;
+      ctx.strokeStyle = currentTheme === 'light' ? styles.accent : styles.border;
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      drawRoundRect(ctx, colRightX, passiveBoxY, colRightW, 46, currentTheme === 'abyssal' ? 4 : 8);
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.fillStyle = styles.textSecondary;
+      ctx.font = `500 11px ${styles.font}`;
+      ctx.textAlign = 'left';
+      ctx.fillText('受動【判断力】〈知覚〉', colRightX + 12, passiveBoxY + 28);
+
+      ctx.fillStyle = styles.textAccent;
+      ctx.font = `700 20px ${styles.font}`;
+      ctx.textAlign = 'right';
+      ctx.fillText(currentData.passivePerception.toString(), colRightX + colRightW - 16, passiveBoxY + 31);
+
+      ctx.restore();
+
+      // 区切り線 (Y:760)
+      ctx.save();
+      ctx.strokeStyle = styles.border;
+      ctx.lineWidth = 1;
+      if (currentTheme === 'classic') {
+        ctx.strokeStyle = styles.accentGold;
+        ctx.lineWidth = 2;
+      }
+      ctx.beginPath();
+      ctx.moveTo(48, 760);
+      ctx.lineTo(canvas.width - 48, 760);
+      ctx.stroke();
+      ctx.restore();
+
+      // 5. 下部横長セクション (Y: 775〜1075)
+      const secX = 48;
+      const secW = canvas.width - secX * 2;
+      const secH = 140;
+
+      // セクション1: その他の習熟と言語
+      ctx.save();
+      const sec1Y = 775;
+      ctx.fillStyle = currentTheme === 'light' ? styles.bgSubtle : styles.bgSubtle;
+      ctx.strokeStyle = currentTheme === 'light' ? styles.border : styles.border;
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      drawRoundRect(ctx, secX, sec1Y, secW, secH, currentTheme === 'abyssal' ? 4 : 8);
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.fillStyle = styles.textAccent;
+      ctx.font = `700 12px ${styles.font}`;
+      ctx.textAlign = 'left';
+      ctx.fillText('その他の習熟と言語 (OTHER PROFICIENCIES & LANGUAGES)', secX + 12, sec1Y + 22);
+
+      drawWrappedText(ctx, currentData.otherProficiencies, secX + 16, sec1Y + 42, secW - 32, secH - 52, styles.font, styles.textPrimary, 11, 16);
+      ctx.restore();
+
+      // セクション2: 背景
+      ctx.save();
+      const sec2Y = 935;
+      ctx.fillStyle = currentTheme === 'light' ? styles.bgSubtle : styles.bgSubtle;
+      ctx.strokeStyle = currentTheme === 'light' ? styles.border : styles.border;
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      drawRoundRect(ctx, secX, sec2Y, secW, secH, currentTheme === 'abyssal' ? 4 : 8);
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.fillStyle = styles.textAccent;
+      ctx.font = `700 12px ${styles.font}`;
+      ctx.textAlign = 'left';
+      ctx.fillText('背景 (BACKGROUND)', secX + 12, sec2Y + 22);
+
+      drawWrappedText(ctx, currentData.background, secX + 16, sec2Y + 42, secW - 32, secH - 52, styles.font, styles.textPrimary, 11, 16);
+      ctx.restore();
+
+      // 6. COMPACT FOOTER ZONE
+      ctx.save();
+      const footerY = 1095;
+
+      ctx.fillStyle = styles.textSecondary;
+      ctx.font = `400 9px ${styles.font}`;
+      ctx.textAlign = 'left';
+      ctx.fillText('D&D5E キャラクターデータベース（安定版）', 48, footerY + 25);
+      ctx.fillText(currentData.sourceUrl || '', 48, footerY + 40);
+
+      ctx.fillStyle = styles.textSecondary;
+      ctx.font = `400 8px ${styles.font}`;
+      ctx.textAlign = 'right';
+      const themeLabel = `THEME: ${currentTheme.toUpperCase()}`;
+      ctx.fillText(themeLabel, canvas.width - 48, footerY + 25);
+      ctx.fillText('CHARACTER CARD TOOL', canvas.width - 48, footerY + 40);
+
+      ctx.restore();
+    }
+
+    // 技能を能力値順にソートするヘルパー関数
+    function sortSkillsByAbility(skills) {
+      const abilityOrder = ['STR', 'DEX', 'CON', 'INT', 'WIS', 'CHA'];
+      
+      // コピーを作成
+      const copy = [...skills];
+      
+      return copy.sort((a, b) => {
+        const orderA = abilityOrder.indexOf(a.ability);
+        const orderB = abilityOrder.indexOf(b.ability);
+        
+        if (orderA !== orderB) {
+          return orderA - orderB;
+        }
+        
+        // 同じ能力値グループ内は五十音順 (name比較)
+        return a.name.localeCompare(b.name, 'ja');
+      });
+    }
+
+    // PNG画像のダウンロード処理
+    function downloadCard() {
+      if (!currentData) return;
+
+      // ファイル名をキャラクター名にする
+      const filename = `${currentData.characterName || 'character'}_card_${currentTheme}.png`;
+      
+      const link = document.createElement('a');
+      link.download = filename;
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+    }
+  </script>
+</body>
+</html>

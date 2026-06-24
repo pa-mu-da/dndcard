@@ -1,0 +1,13 @@
+{
+  "name": "dnd5e-character-card-tool",
+  "version": "1.0.0",
+  "description": "D&D5E Character Database Card Generator",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2"
+  }
+}
