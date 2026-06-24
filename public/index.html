@@ -1208,6 +1208,7 @@
       ];
 
       const params = [
+        { label: '習熟', value: (currentData.proficiencyBonus >= 0 ? '+' : '') + currentData.proficiencyBonus },
         { label: 'STR', value: (currentData.abilities.str.modifier >= 0 ? '+' : '') + currentData.abilities.str.modifier },
         { label: 'DEX', value: (currentData.abilities.dex.modifier >= 0 ? '+' : '') + currentData.abilities.dex.modifier },
         { label: 'CON', value: (currentData.abilities.con.modifier >= 0 ? '+' : '') + currentData.abilities.con.modifier },

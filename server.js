@@ -77,7 +77,8 @@ function parseCharacterSheet(html) {
     skills: [],
     background: '',
     otherProficiencies: '',
-    playerName: ''
+    playerName: '',
+    proficiencyBonus: 2
   };
 
   // 1. キャラクター名
@@ -90,6 +91,12 @@ function parseCharacterSheet(html) {
   const plMatch = html.match(/プレイヤー名<BR>\s*<DIV class='B'><B>([^<]+)<\/B><\/DIV>/i);
   if (plMatch) {
     result.playerName = plMatch[1].trim();
+  }
+
+  // 1.7 習熟ボーナス
+  const profMatch = html.match(/習熟ボーナス[\s\S]*?<DIV class='A'><B>([^<]+)<\/B><\/DIV>/i);
+  if (profMatch) {
+    result.proficiencyBonus = parseInt(profMatch[1].trim(), 10) || 2;
   }
 
   // 2. 種族
