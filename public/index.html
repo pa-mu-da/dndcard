@@ -328,6 +328,13 @@
       </button>
 
       <div id="status" class="status-msg"></div>
+
+      <!-- 自由記入欄の入力エリア (URL読み込み後に表示) -->
+      <div id="free-memo-container" style="display: none; margin-top: 1.5rem; border-top: 1px solid var(--border-color); padding-top: 1.5rem;">
+        <label for="free-memo-input" style="display: block; font-size: 0.9rem; font-weight: 600; color: var(--text-muted); margin-bottom: 0.6rem; text-transform: uppercase; letter-spacing: 0.05em;">自由記入欄 (カード下部に反映)</label>
+        <textarea id="free-memo-input" rows="4" style="width: 100%; padding: 0.8rem; background: rgba(10, 12, 20, 0.6); border: 1px solid var(--border-color); border-radius: 8px; color: var(--text-main); font-family: inherit; font-size: 0.9rem; outline: none; resize: vertical; margin-bottom: 0.8rem;" placeholder="カード最下部の自由記入欄に表示するテキストを入力してください。"></textarea>
+        <button id="apply-memo-btn" style="width: 100%; padding: 0.8rem; background: var(--accent-color); border: none; border-radius: 8px; color: white; font-weight: 600; font-size: 0.9rem; cursor: pointer; transition: all 0.3s ease;">変更をカードに反映する</button>
+      </div>
     </div>
 
     <div class="preview-container">
@@ -349,6 +356,7 @@
     // グローバル状態
     let currentData = null;
     let currentTheme = 'light';
+    let freeMemoText = ''; // 自由記入欄のテキスト
     const canvas = document.getElementById('card-canvas');
     const ctx = canvas.getContext('2d');
     
@@ -371,6 +379,9 @@
     const ccfoliaBtn = document.getElementById('ccfolia-btn');
     const statusDiv = document.getElementById('status');
     const themeButtons = document.querySelectorAll('.theme-btn');
+    const freeMemoContainer = document.getElementById('free-memo-container');
+    const freeMemoInput = document.getElementById('free-memo-input');
+    const applyMemoBtn = document.getElementById('apply-memo-btn');
 
     // 初期状態描画 (空の状態)
     drawPlaceholder();
@@ -379,6 +390,13 @@
     generateBtn.addEventListener('click', generateCard);
     downloadBtn.addEventListener('click', downloadCard);
     ccfoliaBtn.addEventListener('click', copyCcfoliaJson);
+    
+    applyMemoBtn.addEventListener('click', () => {
+      freeMemoText = freeMemoInput.value;
+      if (currentData) {
+        drawCard();
+      }
+    });
 
     themeButtons.forEach(btn => {
       btn.addEventListener('click', () => {
@@ -468,6 +486,11 @@
 
         currentData = result;
         clearStatus();
+        
+        // 自由記入欄の初期化と表示
+        freeMemoText = '';
+        freeMemoInput.value = '';
+        freeMemoContainer.style.display = 'block';
         
         // フォントのロード完了を待って描画
         await document.fonts.ready;
@@ -1100,31 +1123,55 @@
       ctx.stroke();
       ctx.restore();
 
-      // 5. 下部横長セクション (Y: 775〜1075)
+      // 5. 下部セクション (Y: 775〜1075)
       const secX = 48;
       const secW = canvas.width - secX * 2;
       const secH = 140;
 
-      // セクション1: その他の習熟と言語
-      ctx.save();
+      // 5-A. 2カラム構成 (Y: 775〜915, その他の習熟と言語 & 背景)
       const sec1Y = 775;
+      const colW = (secW - 16) / 2; // 344px (間隔16px)
+      const leftColX = secX;
+      const rightColX = secX + colW + 16;
+
+      // 左カラム: その他の習熟と言語 (改行を半角スペースに変換)
+      ctx.save();
       ctx.fillStyle = currentTheme === 'light' ? styles.bgSubtle : styles.bgSubtle;
       ctx.strokeStyle = currentTheme === 'light' ? styles.border : styles.border;
       ctx.lineWidth = 1;
       ctx.beginPath();
-      drawRoundRect(ctx, secX, sec1Y, secW, secH, currentTheme === 'abyssal' ? 4 : 8);
+      drawRoundRect(ctx, leftColX, sec1Y, colW, secH, currentTheme === 'abyssal' ? 4 : 8);
       ctx.fill();
       ctx.stroke();
 
       ctx.fillStyle = styles.textAccent;
-      ctx.font = `700 12px ${styles.font}`;
+      ctx.font = `700 11px ${styles.font}`;
       ctx.textAlign = 'left';
-      ctx.fillText('その他の習熟と言語 (OTHER PROFICIENCIES & LANGUAGES)', secX + 12, sec1Y + 22);
+      ctx.fillText('その他の習熟と言語', leftColX + 12, sec1Y + 22);
 
-      drawWrappedText(ctx, currentData.otherProficiencies, secX + 16, sec1Y + 42, secW - 32, secH - 52, styles.font, styles.textPrimary, 11, 16);
+      const cleanProf = (currentData.otherProficiencies || '').replace(/\n/g, ' ');
+      drawWrappedText(ctx, cleanProf, leftColX + 12, sec1Y + 42, colW - 24, secH - 52, styles.font, styles.textPrimary, 11, 16);
       ctx.restore();
 
-      // セクション2: 背景
+      // 右カラム: 背景 (BACKGROUND)
+      ctx.save();
+      ctx.fillStyle = currentTheme === 'light' ? styles.bgSubtle : styles.bgSubtle;
+      ctx.strokeStyle = currentTheme === 'light' ? styles.border : styles.border;
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      drawRoundRect(ctx, rightColX, sec1Y, colW, secH, currentTheme === 'abyssal' ? 4 : 8);
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.fillStyle = styles.textAccent;
+      ctx.font = `700 11px ${styles.font}`;
+      ctx.textAlign = 'left';
+      ctx.fillText('背景 (BACKGROUND)', rightColX + 12, sec1Y + 22);
+
+      drawWrappedText(ctx, currentData.background, rightColX + 12, sec1Y + 42, colW - 24, secH - 52, styles.font, styles.textPrimary, 11, 16);
+      ctx.restore();
+
+      // 5-B. 最下段: 自由記入欄 (Y: 935〜1075, 1カラム)
       ctx.save();
       const sec2Y = 935;
       ctx.fillStyle = currentTheme === 'light' ? styles.bgSubtle : styles.bgSubtle;
@@ -1138,9 +1185,9 @@
       ctx.fillStyle = styles.textAccent;
       ctx.font = `700 12px ${styles.font}`;
       ctx.textAlign = 'left';
-      ctx.fillText('背景 (BACKGROUND)', secX + 12, sec2Y + 22);
+      ctx.fillText('自由記入欄 (FREE MEMO)', secX + 12, sec2Y + 22);
 
-      drawWrappedText(ctx, currentData.background, secX + 16, sec2Y + 42, secW - 32, secH - 52, styles.font, styles.textPrimary, 11, 16);
+      drawWrappedText(ctx, freeMemoText, secX + 16, sec2Y + 42, secW - 32, secH - 52, styles.font, styles.textPrimary, 11, 16);
       ctx.restore();
 
       // 6. COMPACT FOOTER ZONE
@@ -1201,10 +1248,14 @@
       if (!currentData) return;
 
       const pl = currentData.playerName || 'なし';
-      const memo = `${currentData.characterName}\nPL: ${pl}\n種族: ${currentData.race}\nクラス: ${currentData.classAndLevel}\n移動速度: ${currentData.speed}`;
+      let memo = `${currentData.characterName}\nPL: ${pl}\n種族: ${currentData.race}\nクラス: ${currentData.classAndLevel}\n移動速度: ${currentData.speed}`;
+      if (freeMemoText) {
+        memo += `\n\n【自由記入】\n${freeMemoText}`;
+      }
 
       const status = [
-        { label: 'HP', value: currentData.hp.max, max: currentData.hp.max }
+        { label: 'HP', value: currentData.hp.max, max: currentData.hp.max },
+        { label: '修正', value: 0, max: 0 }
       ];
 
       const params = [
