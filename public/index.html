@@ -1131,8 +1131,8 @@
       // 5-A. 2カラム構成 (Y: 775〜915, その他の習熟と言語 & 背景)
       const sec1Y = 775;
       const secColW = (secW - 16) / 2; // 344px (間隔16px)
-      const leftColX = secX;
-      const rightColX = secX + secColW + 16;
+      const secLeftColX = secX;
+      const secRightColX = secX + secColW + 16;
 
       // 左カラム: その他の習熟と言語 (改行を半角スペースに変換)
       ctx.save();
@@ -1140,17 +1140,17 @@
       ctx.strokeStyle = currentTheme === 'light' ? styles.border : styles.border;
       ctx.lineWidth = 1;
       ctx.beginPath();
-      drawRoundRect(ctx, leftColX, sec1Y, secColW, secH, currentTheme === 'abyssal' ? 4 : 8);
+      drawRoundRect(ctx, secLeftColX, sec1Y, secColW, secH, currentTheme === 'abyssal' ? 4 : 8);
       ctx.fill();
       ctx.stroke();
 
       ctx.fillStyle = styles.textAccent;
       ctx.font = `700 11px ${styles.font}`;
       ctx.textAlign = 'left';
-      ctx.fillText('その他の習熟と言語', leftColX + 12, sec1Y + 22);
+      ctx.fillText('その他の習熟と言語', secLeftColX + 12, sec1Y + 22);
 
       const cleanProf = (currentData.otherProficiencies || '').replace(/\n/g, ' ');
-      drawWrappedText(ctx, cleanProf, leftColX + 12, sec1Y + 42, secColW - 24, secH - 52, styles.font, styles.textPrimary, 11, 16);
+      drawWrappedText(ctx, cleanProf, secLeftColX + 12, sec1Y + 42, secColW - 24, secH - 52, styles.font, styles.textPrimary, 11, 16);
       ctx.restore();
 
       // 右カラム: 背景 (BACKGROUND)
@@ -1159,16 +1159,16 @@
       ctx.strokeStyle = currentTheme === 'light' ? styles.border : styles.border;
       ctx.lineWidth = 1;
       ctx.beginPath();
-      drawRoundRect(ctx, rightColX, sec1Y, secColW, secH, currentTheme === 'abyssal' ? 4 : 8);
+      drawRoundRect(ctx, secRightColX, sec1Y, secColW, secH, currentTheme === 'abyssal' ? 4 : 8);
       ctx.fill();
       ctx.stroke();
 
       ctx.fillStyle = styles.textAccent;
       ctx.font = `700 11px ${styles.font}`;
       ctx.textAlign = 'left';
-      ctx.fillText('背景 (BACKGROUND)', rightColX + 12, sec1Y + 22);
+      ctx.fillText('背景 (BACKGROUND)', secRightColX + 12, sec1Y + 22);
 
-      drawWrappedText(ctx, currentData.background, rightColX + 12, sec1Y + 42, secColW - 24, secH - 52, styles.font, styles.textPrimary, 11, 16);
+      drawWrappedText(ctx, currentData.background, secRightColX + 12, sec1Y + 42, secColW - 24, secH - 52, styles.font, styles.textPrimary, 11, 16);
       ctx.restore();
 
       // 5-B. 最下段: 自由記入欄 (Y: 935〜1075, 1カラム)
